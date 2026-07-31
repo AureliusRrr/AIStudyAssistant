@@ -1,9 +1,7 @@
 package com.aistudy.backend.entity;
 
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,8 +10,16 @@ import java.time.LocalDateTime;
 @TableName("tb_user")
 public class User {
     @TableId(type = IdType.AUTO)
-    private long id;
+    private Long id;
     private String username;
+    private String password;
     private String email;
+    private String avatar;
+    private String role;
+
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
 }

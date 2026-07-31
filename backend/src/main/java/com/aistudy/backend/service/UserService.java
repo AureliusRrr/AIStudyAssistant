@@ -1,14 +1,14 @@
 package com.aistudy.backend.service;
 
+import com.aistudy.backend.dto.LoginRequest;
+import com.aistudy.backend.dto.LoginResponse;
+import com.aistudy.backend.dto.RegisterRequest;
 import com.aistudy.backend.entity.User;
 
-import java.util.List;
-
 public interface UserService {
-    User createUser(User user);
-    User getUserById(Long id);
-    List<User> getAllUsers();
-    User updateUser(Long id, User user);
-    void deleteUser(Long id);
+    User register(RegisterRequest Request);
+    LoginResponse login(LoginRequest Request);
+    User getById(Long id);
+    User getByUsername(String username);
 
 }
