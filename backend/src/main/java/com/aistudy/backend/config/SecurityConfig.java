@@ -32,7 +32,7 @@ public class SecurityConfig {
                 //接口权限配置
                 .authorizeHttpRequests(auth -> auth
                         //注册和登录接口不需要认证
-                        .requestMatchers("api/user/register", "api/user/login").permitAll()
+                        .requestMatchers("/api/user/register", "/api/user/login").permitAll()
                         //其他接口需要认证
                         .anyRequest().authenticated())
                 //添加JWT认证过滤器到Spring Security 过滤器链
