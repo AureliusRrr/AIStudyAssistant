@@ -3,6 +3,7 @@ package com.aistudy.backend.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,6 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //注册和登录接口不需要认证
                         .requestMatchers("/api/user/register", "/api/user/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/document/*/download").permitAll()
                         //其他接口需要认证
                         .anyRequest().authenticated())
                 //添加JWT认证过滤器到Spring Security 过滤器链
