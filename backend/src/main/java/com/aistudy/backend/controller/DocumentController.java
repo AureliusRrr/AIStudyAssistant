@@ -23,72 +23,54 @@ import java.util.List;
 public class DocumentController {
     private final DocumentService documentService;
 
-    //获取当前登录用户的ID
-    private Long getCurrentUserId(){
+    private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (Long) auth.getPrincipal();
     }
 
-    //上传文件
     @PostMapping("/upload")
-    public Result<Document> upload(@RequestParam("file")MultipartFile file){
+    public Result<Document> upload(@RequestParam("file") MultipartFile file) {
         Long userId = getCurrentUserId();
         Document document = documentService.uploadFile(file, userId);
         return Result.success(document);
     }
 
-    //文件列表
     @GetMapping("/list")
-    public Result<List<Document>> list(){
+    public Result<List<Document>> list() {
         Long userId = getCurrentUserId();
         List<Document> documents = documentService.listByUser(userId);
         return Result.success(documents);
     }
 
-    //文件详情
     @GetMapping("/{id}")
-    public Result<Document> detail(@PathVariable long id){
+    public Result<Document> detail(@PathVariable Long id) {
         return Result.success(documentService.getById(id));
     }
 
-    //下载文件
     @GetMapping("/{id}/download")
-    public ResponseEntity<Resource> download(@PathVariable Long id){
+    public ResponseEntity<Resource> download(@PathVariable Long id) {
         Document document = documentService.getById(id);
         String filePath = document.getFilePath();
 
         Resource resource = new FileSystemResource(filePath);
-        if(!resource.exists()){
-            throw new RuntimeException("文件不存在");
+        if (!resource.exists()) {
+            throw new RuntimeException("file not found");
         }
 
-        // 处理中文文件名编码
-        String encodedFilename;
-        encodedFilename = URLEncoder.encode(document.getFilename(),
+        String encodedFilename = URLEncoder.encode(document.getFilename(),
                 StandardCharsets.UTF_8).replace("+", "%20");
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename*UTF-8''" + encodedFilename)
+                        "attachment; filename*=UTF-8''" + encodedFilename)
                 .body(resource);
-
     }
 
-    //删除文件
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         Long userId = getCurrentUserId();
-        documentService.deleteById(id,userId);
-        return Result.success("删除成功");
+        documentService.deleteById(id, userId);
+        return Result.success("deleted");
     }
-
-
 }
-
-
-
-
-
-
-
