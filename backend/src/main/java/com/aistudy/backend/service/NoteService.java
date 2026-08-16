@@ -13,7 +13,7 @@ public interface NoteService {
 
     Note getById(Long id);
 
-    List<NoteSummary> listByUser(Long userId);
+    List<NoteSummary> listByUser(Long userId, String keyword, String tag);
 
     void deleteById(Long id, Long userId);
 
