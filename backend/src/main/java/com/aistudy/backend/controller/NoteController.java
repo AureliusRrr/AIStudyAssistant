@@ -31,7 +31,7 @@ public class NoteController {
     }
 
     //更新笔记
-    @PostMapping({"/{id}"})
+    @PutMapping("/{id}")
     public Result<Note> update(@PathVariable Long id, @RequestBody NoteRequest request){
         return Result.success(noteService.update(id,request, getCurrentUserId()));
     }
