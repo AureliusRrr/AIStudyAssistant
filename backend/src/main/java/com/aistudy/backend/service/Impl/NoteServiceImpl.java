@@ -115,7 +115,14 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public void deleteById(Long id, Long userId) {
-
+        Note note = noteMapper.selectById(id);
+        if(note == null){
+            throw new RuntimeException("笔记不存在");
+        }
+        if(!note.getUserId().equals(userId)){
+            throw new RuntimeException("无权删除他人笔记");
+        }
+        noteMapper.deleteById(id);
     }
 
     //辅助方法
