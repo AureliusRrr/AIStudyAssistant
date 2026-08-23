@@ -1,14 +1,19 @@
 package com.aistudy.backend.service.Impl;
 
+import com.aistudy.backend.common.CacheKeys;
 import com.aistudy.backend.config.FileUploadConfig;
 import com.aistudy.backend.entity.Document;
 import com.aistudy.backend.mapper.DocumentMapper;
 import com.aistudy.backend.service.DocumentService;
+import com.aistudy.backend.service.RedisCacheService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,11 +25,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
     private final DocumentMapper documentMapper;
     private final FileUploadConfig fileUploadConfig;
+    private final RedisCacheService redisCacheService;
+    private final ObjectMapper objectMapper;
 
 
     @Override
@@ -45,6 +53,7 @@ public class DocumentServiceImpl implements DocumentService {
         }catch (IOException e){
             throw new RuntimeException("创建上传目录失败");
         }
+
         //4.保存文件到磁盘
         Path targetPath = uploadDir.resolve(storedFilename);
         try{
@@ -63,16 +72,38 @@ public class DocumentServiceImpl implements DocumentService {
         document.setFileSize(file.getSize());
 
         documentMapper.insert(document);
-        return document;
 
+        redisCacheService.delete(CacheKeys.documentList(userId));
+
+        return document;
 
     }
 
     @Override
     public List<Document> listByUser(Long userId) {
+        String key = CacheKeys.documentList(userId);
+
+        //1.先查缓存
+        String cached = redisCacheService.get(key);
+        if(cached != null){
+            try{
+                TypeReference<List<Document>> type = new TypeReference<>() {};
+                return objectMapper.readValue(cached, type);
+            }catch(JsonProcessingException e){
+                log.warn("文件列表缓存序列化失败,userId={}",userId,e);
+            }
+        }
+
+        //2.未命中,查MySQL
         LambdaQueryWrapper<Document> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Document::getUserId, userId).orderByDesc(Document::getUploadTime);
-        return documentMapper.selectList(wrapper);
+        List<Document> documents = documentMapper.selectList(wrapper);
+
+        //3.回填缓存
+        redisCacheService.set(key,documents,CacheKeys.DOCUMENT_LIST_CACHE_TTL);
+
+        return documents;
+
     }
 
     @Override
@@ -99,6 +130,9 @@ public class DocumentServiceImpl implements DocumentService {
 
         //删除数据库记录
         documentMapper.deleteById(id);
+
+        //删除缓存
+        redisCacheService.delete(CacheKeys.documentList(userId));
     }
 
     @Override
