@@ -80,18 +80,22 @@ public class UserServiceImpl implements UserService {
         //1.先查Redis
         String cached = redisCacheService.get(CacheKeys.user(id));
         if(cached != null){
+            if(cached.isEmpty()){
+                throw new RuntimeException("用户不存在");
+            }
+
             //2.命中:把JSON反序列化为User返回,不再查找数据库
             try{
                 return objectMapper.readValue(cached,User.class);
             } catch (JsonProcessingException e){
                 log.warn("用户缓存反序列化失败:{}",id,e);
             }
-
         }
 
         //3.未命中:查MySQL
         User user = userMapper.selectById(id);
         if(user == null){
+            redisCacheService.setEmpty(CacheKeys.user(id),60);
             throw new RuntimeException("用户不存在");
         }
 

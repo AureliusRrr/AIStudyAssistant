@@ -40,6 +40,18 @@ public class RedisCacheService {
         return redisTemplate.opsForValue().get(key);
     }
 
+    public String getAndExpire(String key,long ttlSeconds){
+        String value = redisTemplate.opsForValue().get(key);
+        if(value != null){
+            redisTemplate.expire(key, Duration.ofSeconds(ttlSeconds));
+        }
+        return value;
+    }
+
+    public void setEmpty(String key,long ttlSeconds){
+        redisTemplate.opsForValue().set(key,"",Duration.ofSeconds(ttlSeconds));
+    }
+
     public void delete(String key){
         redisTemplate.delete(key);
     }
