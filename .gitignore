@@ -1,0 +1,12 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Node 依赖
+node_modules/
+
+# 运行时上传文件
+uploads/
+
+# 日志
+*.log
