@@ -1,0 +1,223 @@
+{
+  "info": {
+    "name": "AIStudyAssistant 第9周-笔记验证",
+    "description": "第9周验证步骤用：先登录拿 token（脚本会自动存到集合变量 token），再创建带 tag 的笔记，最后验证列表/搜索/标签过滤。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 登录（自动保存 token）",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "if (res.code === 200 && res.data && res.data.token) {",
+              "    pm.collectionVariables.set('token', res.data.token);",
+              "    console.log('token 已保存到集合变量 token');",
+              "} else {",
+              "    console.log('登录失败：' + JSON.stringify(res));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"你的用户名\",\n  \"password\": \"你的密码\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "login"
+          ]
+        },
+        "description": "不需要 token。成功后脚本把返回的 data.token 写进集合变量 token，后面的请求用 {{token}} 即可。"
+      }
+    },
+    {
+      "name": "2. 创建笔记（tag=java，置顶）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Java集合\",\n  \"content\": \"# Java 集合\\n\\nArrayList 是数组实现，查询快、增删慢；LinkedList 是链表实现，增删快、查询慢。HashMap 底层是数组+链表+红黑树。\",\n  \"tags\": \"java,集合\",\n  \"isPinned\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/note",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "note"
+          ]
+        },
+        "description": "tags 是逗号分隔的字符串（不是数组）。后端会用 content 自动生成 summary。"
+      }
+    },
+    {
+      "name": "3. 创建笔记（tag=network）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"TCP三次握手\",\n  \"content\": \"# TCP 三次握手\\n\\n第一次：客户端发送 SYN；第二次：服务器回复 SYN+ACK；第三次：客户端回复 ACK。\",\n  \"tags\": \"network,tcp\",\n  \"isPinned\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/note",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "note"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. 笔记列表（不筛选）",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/note/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "note",
+            "list"
+          ]
+        },
+        "description": "返回 NoteSummary 数组，注意每条里有 summary 字段（前端 NotesView 第43行用的就是它）。"
+      }
+    },
+    {
+      "name": "5. 按标签过滤 tag=java",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/note/list?tag=java",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "note",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "tag",
+              "value": "java"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. 关键词搜索 keyword=Java",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/note/list?keyword=Java",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "note",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "Java"
+            }
+          ]
+        },
+        "description": "后端对 title 和 content 做 like 模糊匹配。"
+      }
+    }
+  ]
+}
