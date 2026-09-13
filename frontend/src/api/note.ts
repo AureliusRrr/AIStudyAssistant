@@ -20,6 +20,8 @@ export function updateNote(id:number | string, data:NoteRequest){
   return request.put<NoteDetail,NoteDetail>(`/note/${id}`, data)
 }
 
-export function deleteNote(id: number){
+// id 统一收 number | string:列表页传的是 note.id(number),
+// 编辑页传的是路由参数(string),与 getNoteDetail / updateNote 保持一致
+export function deleteNote(id: number | string){
   return request.delete<string, string>(`/note/${id}`)
 }
